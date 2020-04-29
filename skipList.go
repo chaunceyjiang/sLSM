@@ -1,11 +1,9 @@
 package sLSM
 
 import (
-	"encoding/binary"
 	"errors"
 	"fmt"
 	"math/rand"
-	"strconv"
 )
 
 const MaxLevel = 10
@@ -64,7 +62,7 @@ func (sk *SkipList) Insert(key K, value V) error {
 		lvl := sk.randomLevel()
 		if lvl > sk.curLevel {
 			// 这里 i = curLevel +  1
-			for i := sk.curLevel+1; i <= lvl; i++ {
+			for i := sk.curLevel + 1; i <= lvl; i++ {
 				updated[i] = sk.head
 			}
 			sk.curLevel = lvl
@@ -87,8 +85,23 @@ func (sk *SkipList) Insert(key K, value V) error {
 	return nil
 }
 
+func (sk *SkipList) Search(key K) (V, bool) {
+	cur := sk.head
+	for i := sk.curLevel; i >= 0; i-- {
+		for cur.forward[i] != nil && sk.cmp.Gt(key, cur.forward[i].key) {
+			cur = cur.forward[i]
+		}
+	}
+	cur = cur.forward[0]
+
+	if cur == nil || sk.cmp.Neq(cur.key, key) {
+		return nil, false
+	}
+	return cur.value, true
+}
+
 // 产生一个随机层
-func (sk SkipList) randomLevel() int {
+func (sk *SkipList) randomLevel() int {
 	lvl := 0
 	for rand.Float64() < sk.p && lvl < MaxLevel {
 		lvl++
@@ -96,12 +109,12 @@ func (sk SkipList) randomLevel() int {
 	return lvl
 }
 
-func (sk SkipList) showList() {
+func (sk *SkipList) ShowList(f func(key K) string) {
 	fmt.Println("-----skip list-----")
 	for i := sk.curLevel; i >= 0; i-- {
 		cur := sk.head.forward[i]
 		for cur != nil {
-			fmt.Printf(strconv.Itoa(int(binary.LittleEndian.Uint64(cur.key))))
+			fmt.Printf(f(cur.key))
 			if cur.forward[i] != nil {
 				fmt.Printf("->")
 			}

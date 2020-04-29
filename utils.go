@@ -1,6 +1,9 @@
 package sLSM
 
-import "encoding/binary"
+import (
+	"encoding/binary"
+	"strconv"
+)
 
 // 比较器
 type Comparer interface {
@@ -46,7 +49,7 @@ func (t testCmp) Gt(k1 K, k2 K) bool {
 }
 
 func (t testCmp) Lt(k1 K, k2 K) bool {
-	return binary.LittleEndian.Uint64(k1) <binary.LittleEndian.Uint64(k2)
+	return binary.LittleEndian.Uint64(k1) < binary.LittleEndian.Uint64(k2)
 }
 
 func (t testCmp) Eq(k1 K, k2 K) bool {
@@ -55,4 +58,18 @@ func (t testCmp) Eq(k1 K, k2 K) bool {
 
 func (t testCmp) Neq(k1 K, k2 K) bool {
 	return binary.LittleEndian.Uint64(k1) != binary.LittleEndian.Uint64(k2)
+}
+
+func showLevelFunc() func(key K) string {
+	return func(key K) string {
+		return strconv.Itoa(int(binary.LittleEndian.Uint64(key)))
+	}
+}
+
+func genTestKeyValue(i int) (key K, value V) {
+	key = make(K, 8)
+	value = make(V, 8)
+	binary.LittleEndian.PutUint64(key, uint64(i))
+	binary.LittleEndian.PutUint64(value, uint64(i*2))
+	return
 }

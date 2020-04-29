@@ -32,3 +32,12 @@ func TestSkipList_Insert(t *testing.T) {
 	_ = sk.Insert(genTestKeyValue(27))
 	sk.ShowList(showLevelFunc())
 }
+
+func TestSkipList_Delete(t *testing.T) {
+	sk := testInit()
+	key, value := genTestKeyValue(27)
+	_ = sk.Insert(key, value)
+	sk.ShowList(showLevelFunc())
+	sk.Delete(key)
+	sk.ShowList(showLevelFunc())
+}

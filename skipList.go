@@ -86,6 +86,9 @@ func (sk *SkipList) Insert(key K, value V) error {
 }
 
 func (sk *SkipList) Search(key K) (V, bool) {
+	if !checkKey(key) {
+		return nil, false
+	}
 	cur := sk.head
 	for i := sk.curLevel; i >= 0; i-- {
 		for cur.forward[i] != nil && sk.cmp.Gt(key, cur.forward[i].key) {
@@ -98,6 +101,38 @@ func (sk *SkipList) Search(key K) (V, bool) {
 		return nil, false
 	}
 	return cur.value, true
+}
+
+func (sk *SkipList) Delete(key K) {
+	if !checkKey(key) {
+		return
+	}
+	updated := make([]*node, MaxLevel+1)
+	cur := sk.head
+	for i := sk.curLevel; i >= 0; i-- {
+		for cur.forward[i] != nil && sk.cmp.Gt(key, cur.forward[i].key) {
+			cur = cur.forward[i]
+		}
+		updated[i] = cur
+	}
+	cur = cur.forward[0]
+
+	if sk.cmp.Neq(cur.key, key) {
+		return
+	}
+	// 修改每一层指针
+	for i := 0; i < sk.curLevel; i++ {
+		if updated[i].forward[i] != cur {
+			break
+		}
+		// 修改删除节点的前一个指针
+		updated[i].forward[i] = cur.forward[i]
+	}
+
+	for sk.curLevel > 1 && sk.head.forward[sk.curLevel]==nil{
+		// 头结点指向了一个空值，表示当前层已经没有节点了，层数减一
+		sk.curLevel--
+	}
 }
 
 // 产生一个随机层

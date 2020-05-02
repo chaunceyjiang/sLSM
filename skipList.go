@@ -25,7 +25,8 @@ func newNode(key K, value V, level int) *node {
 
 type SkipList struct {
 	head     *node
-	max      int
+	maxKey   K
+	minKey   K
 	curLevel int
 	p        float64
 	cmp      Comparer
@@ -35,7 +36,6 @@ type SkipList struct {
 func NewSkipList(cmp Comparer) *SkipList {
 	return &SkipList{
 		head:     newNode(nil, nil, MaxLevel),
-		max:      MaxLevel,
 		curLevel: 0,
 		p:        0.5,
 		cmp:      cmp,
@@ -46,6 +46,12 @@ func NewSkipList(cmp Comparer) *SkipList {
 func (sk *SkipList) Insert(key K, value V) error {
 	if !checkKV(key, value) {
 		return errors.New("key or value error")
+	}
+	if sk.minKey == nil || sk.cmp.Lt(key, sk.minKey) {
+		sk.minKey = key
+	}
+	if sk.maxKey == nil || sk.cmp.Gt(key, sk.maxKey) {
+		sk.maxKey = key
 	}
 	updated := make([]*node, MaxLevel+1)
 	cur := sk.head
@@ -128,8 +134,8 @@ func (sk *SkipList) Delete(key K) {
 		// 修改删除节点的前一个指针
 		updated[i].forward[i] = cur.forward[i]
 	}
-
-	for sk.curLevel > 1 && sk.head.forward[sk.curLevel]==nil{
+	sk.n--
+	for sk.curLevel > 1 && sk.head.forward[sk.curLevel] == nil {
 		// 头结点指向了一个空值，表示当前层已经没有节点了，层数减一
 		sk.curLevel--
 	}
@@ -157,4 +163,38 @@ func (sk *SkipList) ShowList(f func(key K) string) {
 		}
 		fmt.Println()
 	}
+}
+
+func (sk *SkipList) getAll() []KVPair {
+	node := sk.head.forward[0]
+	rest := make([]KVPair, 0)
+	for node != nil {
+		rest = append(rest, KVPair{
+			Key:   node.key,
+			Value: node.value,
+		})
+		node = node.forward[0]
+	}
+	return rest
+}
+
+func (sk *SkipList) getAllInRange(k1, k2 K) []KVPair {
+	if sk.cmp.Gt(k1, sk.maxKey) || sk.cmp.Lt(k2, sk.minKey) {
+		return nil
+	}
+	rest := make([]KVPair, 0)
+	node := sk.head.forward[0]
+	for sk.cmp.Lt(node.key, k1) {
+		node = node.forward[0]
+	}
+	for sk.cmp.Lt(node.key, k2) {
+
+		rest = append(rest, KVPair{
+			Key:   node.key,
+			Value: node.value,
+		})
+		node = node.forward[0]
+	}
+
+	return rest
 }

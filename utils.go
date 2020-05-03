@@ -2,6 +2,7 @@ package sLSM
 
 import (
 	"encoding/binary"
+	"os"
 	"strconv"
 )
 
@@ -20,6 +21,8 @@ type KVPair struct {
 	Key   K
 	Value V
 }
+
+var EMPTY = &KVPair{Key: nil, Value: nil}
 
 func checkKey(key K) bool {
 	if len(key) == 0 {
@@ -72,4 +75,12 @@ func genTestKeyValue(i int) (key K, value V) {
 	binary.LittleEndian.PutUint64(key, uint64(i))
 	binary.LittleEndian.PutUint64(value, uint64(i*2))
 	return
+}
+
+func fileExist(filename string) bool {
+	_, err := os.Stat(filename)
+	if err != nil && os.IsNotExist(err){
+		return false
+	}
+	return true
 }

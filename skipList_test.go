@@ -7,7 +7,6 @@ import (
 func testInit() *SkipList {
 	sk := &SkipList{
 		head:     newNode(nil, nil, MaxLevel),
-		max:      MaxLevel,
 		curLevel: 0,
 		p:        0.5,
 		cmp:      testCmp{},

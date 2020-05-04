@@ -13,7 +13,23 @@ type Comparer interface {
 	Eq(k1 K, k2 K) bool  // 等于
 	Neq(k1 K, k2 K) bool //不等于
 }
+type blockHandle struct {
+	offset, length uint64
+}
+func decodeBlockHandle(src []byte) (blockHandle, int) {
+	offset, n := binary.Uvarint(src)
+	length, m := binary.Uvarint(src[n:])
+	if n == 0 || m == 0 {
+		return blockHandle{}, 0
+	}
+	return blockHandle{offset, length}, n + m
+}
 
+func encodeBlockHandle(dst []byte, b blockHandle) int {
+	n := binary.PutUvarint(dst, b.offset)
+	m := binary.PutUvarint(dst[n:], b.length)
+	return n + m
+}
 type K []byte
 type V []byte
 
@@ -73,6 +89,10 @@ func uint642byte(n uint64) []byte {
 	ret := make(K, 8)
 	binary.LittleEndian.PutUint64(ret, n)
 	return ret
+}
+
+func byte2uint64(b []byte) uint64 {
+	return binary.LittleEndian.Uint64(b)
 }
 
 func genTestKeyValue(i int) (key K, value V) {

@@ -69,17 +69,19 @@ func showLevelFunc() func(key K) string {
 	}
 }
 
+func uint642byte(n uint64) []byte {
+	ret := make(K, 8)
+	binary.LittleEndian.PutUint64(ret, n)
+	return ret
+}
+
 func genTestKeyValue(i int) (key K, value V) {
-	key = make(K, 8)
-	value = make(V, 8)
-	binary.LittleEndian.PutUint64(key, uint64(i))
-	binary.LittleEndian.PutUint64(value, uint64(i*2))
-	return
+	return uint642byte(uint64(i)), uint642byte(uint64(i))
 }
 
 func fileExist(filename string) bool {
 	_, err := os.Stat(filename)
-	if err != nil && os.IsNotExist(err){
+	if err != nil && os.IsNotExist(err) {
 		return false
 	}
 	return true
